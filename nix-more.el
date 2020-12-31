@@ -43,15 +43,9 @@
     (shell-command-to-string
      (concat
       "EDITOR=echo nix edit "
-      (ivy-read "Package: " (nix-more--list-packages-cached)))))))
+      (completing-read "Package: " (nix-more--list-packages-cached)))))))
 
 ;;;; Functions
-
-;;;;; Public
-
-(defun package-name-foo (args)
-  "Return foo for ARGS."
-  (foo args))
 
 ;;;;; Private
 
