@@ -26,6 +26,7 @@
 ;;;; Requirements
 
 (require 'nix-search)
+(require 'bui)
 
 ;;;; Variables
 
@@ -45,6 +46,12 @@
       "EDITOR=echo nix edit "
       (completing-read "Package: " (nix-more--list-packages-cached)))))))
 
+;;;###autoload
+(defun nix-more-list-system-profiles ()
+  "Display a list of system profiles."
+  (interactive)
+  (bui-get-display-entries 'nix-more--system-profiles 'list))
+
 ;;;; Functions
 
 ;;;;; Private
@@ -54,6 +61,25 @@
   (if (not nix-more--package-cache)
       (setq nix-more--package-cache (nix-search "" "")))
   (symbol-value 'nix-more--package-cache))
+
+(defun nix-more--line->entry (line)
+  (let ((l (s-split " " line)))
+    `((name . ,(car (-take-last 3 l)))
+      (date . ,(car (-take-last 5 l)))
+      (path . ,(car (-take-last 1 l))))))
+
+(defun nix-more--get-system-profiles ()
+  (mapcar 'nix-more--line->entry
+          (s-split "\n" (shell-command-to-string
+                         "ls -l /nix/var/nix/profiles/ | grep store"))))
+
+(bui-define-interface nix-more--system-profiles list
+  :buffer-name "*System profiles*"
+  :get-entries-function 'nix-more--get-system-profiles
+  :format '((name nil 20 t)
+            (date nil 8 t)
+            (path bui-list-get-file-name 40 t))
+  :sort-key '(name))
 
 ;;;; Footer
 
